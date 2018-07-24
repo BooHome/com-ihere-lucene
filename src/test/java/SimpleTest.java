@@ -51,7 +51,7 @@ public class SimpleTest {
         Gson gson=new Gson();
         try {
             String line;
-            File someFile = new File("C:\\Users\\亲亲小保\\Desktop\\斗罗大陆.txt");
+            File someFile = new File("C:\\Users\\FSB\\Desktop\\斗罗大陆.txt");
             //输入流
             List<Map<String, String>> maps = new ArrayList<>();
             FileInputStream fis = new FileInputStream(someFile);
@@ -92,7 +92,7 @@ public class SimpleTest {
         Gson gson=new Gson();
         try {
             String line;
-            File someFile = new File("C:\\Users\\亲亲小保\\Desktop\\斗罗大陆.txt");
+            File someFile = new File("C:\\Users\\FSB\\Desktop\\斗罗大陆.txt");
             //输入流
             List<Map<String, String>> maps = new ArrayList<>();
             FileInputStream fis = new FileInputStream(someFile);
@@ -191,7 +191,7 @@ public class SimpleTest {
         //  articleEntities.add(new ArticleEntity(Long.valueOf(i),"第"+i+"篇文章","第"+i+"个人","第1内容20"+i));
         try {
             String line;
-            File someFile = new File("C:\\Users\\亲亲小保\\Desktop\\斗罗大陆.txt");
+            File someFile = new File("C:\\Users\\FSB\\Desktop\\斗罗大陆.txt");
             //输入流
             List<Map<String, String>> maps = new ArrayList<>();
             FileInputStream fis = new FileInputStream(someFile);
@@ -238,7 +238,7 @@ public class SimpleTest {
         //  articleEntities.add(new ArticleEntity(Long.valueOf(i),"第"+i+"篇文章","第"+i+"个人","第1内容20"+i));
         try {
             String line;
-            File someFile = new File("C:\\Users\\亲亲小保\\Desktop\\斗罗大陆.txt");
+            File someFile = new File("C:\\Users\\FSB\\Desktop\\斗罗大陆.txt");
             //输入流
             List<Map<String, String>> maps = new ArrayList<>();
             FileInputStream fis = new FileInputStream(someFile);
@@ -388,7 +388,7 @@ public class SimpleTest {
                         System.out.println("开始 Thread并发事情>>>" + NO);
                         System.out.println("可以进行插入>>" + NO);
                         String line;
-                        File someFile = new File("C:\\Users\\亲亲小保\\Desktop\\斗罗大陆.txt");
+                        File someFile = new File("C:\\Users\\FSB\\Desktop\\斗罗大陆.txt");
                         //输入流
                         List<Map<String, String>> maps = new ArrayList<>();
                         FileInputStream fis = new FileInputStream(someFile);
