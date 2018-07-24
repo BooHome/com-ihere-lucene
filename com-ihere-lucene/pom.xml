@@ -103,7 +103,7 @@
     </distributionManagement>
     <build>
         <!-- 不打包*.txt -->
-        <resources>
+       <!-- <resources>
             <resource>
                 <directory>src/main/resources</directory>
                 <excludes>
@@ -113,7 +113,7 @@
                     <exclude>*.xml</exclude>
                 </excludes>
             </resource>
-        </resources>
+        </resources>-->
     </build>
 
 </project>

@@ -8,6 +8,7 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,7 +21,12 @@ public class DocumentUtil {
 
     public static Document jsonToDoc( String json){
         Gson gson=new Gson();
-        Map<String, String> map = gson.fromJson(json, Map.class);
+        Map<String, String> map=new HashMap<>();
+        try{
+            map = gson.fromJson(json, Map.class);
+        }catch (Exception e){
+            return null;
+        }
         Document doc =DocumentUtil.mapToDoc(map);
         return doc;
     }
@@ -41,10 +47,15 @@ public class DocumentUtil {
 
     public static List<Document> jsonToDocs(String json){
         Gson gson=new Gson();
-        List<Map<String, String>> list = gson.fromJson(json, List.class);
+        List<Map<String, String>> maps=new ArrayList<>();
+        try{
+            maps = gson.fromJson(json, List.class);
+        }catch (Exception e){
+            return null;
+        }
         List<Document> documents=new ArrayList<>();
         for (Map<String, String> map:
-             list) {
+                maps) {
             Document doc = DocumentUtil.mapToDoc(map);
             documents.add(doc);
         }
