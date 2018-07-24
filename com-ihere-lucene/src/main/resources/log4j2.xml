@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE xml>
+<Configuration status="info" name="message">
+	<properties>
+		<property name="logPath">D:/log/com/jshq/social/lucene</property>
+	</properties>
+	<Appenders>
+		<Console name="Console" target="SYSTEM_OUT">
+			<PatternLayout pattern="[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%t] [%p] [%c:%L] %msg%n" />
+		</Console>
+		<RollingFile name="RollingFile" filename="${logPath}/message.log" filepattern="${logPath}/message_%d{yyyy-MM-dd}.log.gz">
+			<PatternLayout pattern="[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%t] [%p] [%c:%L] %msg%n" />
+			<Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true" />
+			</Policies>
+		</RollingFile>
+	</Appenders>
+	<Loggers>
+		<Root level="info">
+			<AppenderRef ref="Console" />
+			<AppenderRef ref="RollingFile" />
+		</Root>
+		<logger name="com.atomikos" level="error"/>
+		<!--修改404等级为info-->
+		<logger name="org.springframework.web.servlet.PageNotFound" level="error"/>
+	</Loggers>
+</Configuration>
