@@ -5,6 +5,7 @@ import com.ihere.lucene.enums.IndexOperationTypeEnum;
 import com.ihere.lucene.enums.OperationTypeEnum;
 import com.ihere.lucene.help.LuceneHelper;
 import com.ihere.lucene.util.IndexWriterUtil;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.apache.lucene.index.IndexWriter;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,7 +32,7 @@ import java.util.concurrent.Semaphore;
  * @desc ${DESCRIPTION}
  **/
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("classpath:spring-search.xml")
+@ContextConfiguration("classpath:spring-config.xml")
 public class SimpleTest {
     @Autowired
     private LuceneHelper luceneHelper;
@@ -51,7 +52,7 @@ public class SimpleTest {
         Gson gson=new Gson();
         try {
             String line;
-            File someFile = new File("C:\\Users\\FSB\\Desktop\\斗罗大陆.txt");
+            File someFile = new File("C:\\Users\\亲亲小保\\Desktop\\斗罗大陆.txt");
             //输入流
             List<Map<String, String>> maps = new ArrayList<>();
             FileInputStream fis = new FileInputStream(someFile);
@@ -92,7 +93,7 @@ public class SimpleTest {
         Gson gson=new Gson();
         try {
             String line;
-            File someFile = new File("C:\\Users\\FSB\\Desktop\\斗罗大陆.txt");
+            File someFile = new File("C:\\Users\\亲亲小保\\Desktop\\斗罗大陆.txt");
             //输入流
             List<Map<String, String>> maps = new ArrayList<>();
             FileInputStream fis = new FileInputStream(someFile);
@@ -129,17 +130,18 @@ public class SimpleTest {
 
     @Test
     public void testnum() {
-        String json = "{'id':'1','title':'这是我第一次测试的内容我是冯世博','content':'这是我第一次测试的内容'}";
+        String json = "{'id':'2','title':'这是我第一次测试的内容我是冯世博','content':'这是我第一次测试的内容'}";
         TaskEntity taskEntity = new TaskEntity(json, IndexOperationTypeEnum.ADD, OperationTypeEnum.ONE);
         String jsons = "[{'id':'1','title':'这是我第一次测试的内容我是冯世博','content':'这是我第一次测试的内容'},{'id':'1','title':'这是我第一次测试的内容我是冯世博','content':'这是我第一次测试的内容'}]";
         TaskEntity taskEntitys = new TaskEntity(jsons, IndexOperationTypeEnum.ADD, OperationTypeEnum.MORE);
         List<TaskEntity> queueEntities = new ArrayList<>();
         queueEntities.add(taskEntity);
         queueEntities.add(taskEntitys);
-      // luceneHelper.addIndexOperationTask(queueEntities);
+       Boolean flag=luceneHelper.addTaskLinkList(taskEntitys);
         try {
-            String s = luceneHelper.indexReader();
-            System.out.println(s);
+        //    String s = luceneHelper.indexReader();
+          //  System.out.println(s);
+            System.out.println(flag);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -191,7 +193,7 @@ public class SimpleTest {
         //  articleEntities.add(new ArticleEntity(Long.valueOf(i),"第"+i+"篇文章","第"+i+"个人","第1内容20"+i));
         try {
             String line;
-            File someFile = new File("C:\\Users\\FSB\\Desktop\\斗罗大陆.txt");
+            File someFile = new File("C:\\Users\\亲亲小保\\Desktop\\斗罗大陆.txt");
             //输入流
             List<Map<String, String>> maps = new ArrayList<>();
             FileInputStream fis = new FileInputStream(someFile);
@@ -238,7 +240,7 @@ public class SimpleTest {
         //  articleEntities.add(new ArticleEntity(Long.valueOf(i),"第"+i+"篇文章","第"+i+"个人","第1内容20"+i));
         try {
             String line;
-            File someFile = new File("C:\\Users\\FSB\\Desktop\\斗罗大陆.txt");
+            File someFile = new File("C:\\Users\\亲亲小保\\Desktop\\斗罗大陆.txt");
             //输入流
             List<Map<String, String>> maps = new ArrayList<>();
             FileInputStream fis = new FileInputStream(someFile);
@@ -388,7 +390,7 @@ public class SimpleTest {
                         System.out.println("开始 Thread并发事情>>>" + NO);
                         System.out.println("可以进行插入>>" + NO);
                         String line;
-                        File someFile = new File("C:\\Users\\FSB\\Desktop\\斗罗大陆.txt");
+                        File someFile = new File("C:\\Users\\亲亲小保\\Desktop\\斗罗大陆.txt");
                         //输入流
                         List<Map<String, String>> maps = new ArrayList<>();
                         FileInputStream fis = new FileInputStream(someFile);

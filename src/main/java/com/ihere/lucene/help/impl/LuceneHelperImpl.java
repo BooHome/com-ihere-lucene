@@ -13,6 +13,7 @@ import com.ihere.lucene.ik.MyIKAnalyzer;
 import com.ihere.lucene.task.Task;
 import com.ihere.lucene.util.DocumentUtil;
 import com.ihere.lucene.util.IndexWriterUtil;
+import com.ihere.lucene.util.JsonUtil;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.synonym.SynonymFilterFactory;
@@ -807,7 +808,11 @@ public class LuceneHelperImpl implements LuceneHelper {
 
     @Override
     public Boolean addTaskLinkList(TaskEntity taskEntity) {
-        return Task.taskQueue.add(taskEntity);
+        if(JsonUtil.isJSONValid(taskEntity.getJson())){
+            return Task.taskQueue.add(taskEntity);
+        }else{
+            return false;
+        }
     }
 
     /**
