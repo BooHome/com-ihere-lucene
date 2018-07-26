@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                        http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+                        http://www.springframework.org/schema/context
+                        http://www.springframework.org/schema/context/spring-context-4.3.xsd
+                        http://www.springframework.org/schema/task
+                        http://www.springframework.org/schema/task/spring-task-3.0.xsd
+                        ">
+    <import resource="spring-search-redis.xml"></import>
+    <context:component-scan base-package="com.ihere.lucene.help.impl"/>
+    <!-- 配置作业bean -->
+    <bean id="task" class="com.ihere.lucene.task.Task"></bean>
+    <bean id="taskRedis" class="com.ihere.lucene.task.TaskRedis"></bean>
+    <!-- 配置执行规则  method为作业方法-->
+   <!-- <task:scheduled-tasks>
+        <task:scheduled ref="task" method="taskDo" cron="0/1 * * * * ?"/>
+    </task:scheduled-tasks>-->
+</beans>

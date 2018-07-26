@@ -33,7 +33,18 @@
             <artifactId>gson</artifactId>
             <version>2.3.1</version>
         </dependency>
-
+        <!--redis客户端jedis依赖-->
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>2.9.0</version>
+        </dependency>
+        <!-- redis Spring 基于注解配置 -->
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-redis</artifactId>
+            <version>1.8.0.RELEASE</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
@@ -88,10 +99,16 @@
             <artifactId>lucene-highlighter</artifactId>
             <version>${lucene.version}</version>
         </dependency>
+        <!-- JSON lib 开发包 以及它的依赖包 -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.8.3</version>
+        </dependency>
 
 
     </dependencies>
-    <distributionManagement>
+    <!--<distributionManagement>
         <snapshotRepository>
             <id>nexus-snapshot</id>
             <url>http://10.10.11.65:11111/repository/Snapshot/</url>
@@ -100,20 +117,29 @@
             <id>nexus-releases</id>
             <url>http://10.10.11.65:11111/repository/Releases/</url>
         </repository>
-    </distributionManagement>
+    </distributionManagement>-->
     <build>
         <!-- 不打包*.txt -->
-       <!-- <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <excludes>
-                    <exclude>*.dic</exclude>
-                    <exclude>*.properties</exclude>
-                    <exclude>*.txt</exclude>
-                    <exclude>*.xml</exclude>
-                </excludes>
-            </resource>
-        </resources>-->
+        <!-- <resources>
+             <resource>
+                 <directory>src/main/resources</directory>
+                 <excludes>
+                     <exclude>*.dic</exclude>
+                     <exclude>*.properties</exclude>
+                     <exclude>*.txt</exclude>
+                     <exclude>*.xml</exclude>
+                 </excludes>
+             </resource>
+         </resources>-->
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+        </plugins>
     </build>
-
 </project>

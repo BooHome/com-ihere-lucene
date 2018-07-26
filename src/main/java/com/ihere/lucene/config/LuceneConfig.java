@@ -10,6 +10,7 @@ import java.util.Properties;
  * @desc ${DESCRIPTION}
  **/
 public class LuceneConfig  {
+
     private static String indexPath;
     private static String mydictPath;
     private static String stopdictPath;
@@ -17,13 +18,14 @@ public class LuceneConfig  {
     private static String idName;
     private static String ikUserSmart;
     private static String taskSmart;
+    private static String queueName;
     static
     {
         try {
             //获取当前类加载器
             ClassLoader classLoader=LuceneConfig.class.getClassLoader();
             //通过当前累加载器方法获得 文件db.properties的一个输入流
-            InputStream is=classLoader.getResourceAsStream("search.properties");
+            InputStream is=classLoader.getResourceAsStream("spring-search.properties");
             //创建一个Properties 对象
             Properties properties=new Properties();
             //加载输入流
@@ -40,6 +42,7 @@ public class LuceneConfig  {
             idName=properties.getProperty("indexes.id.name");
             ikUserSmart=properties.getProperty("indexes.ik.usersmart");
             taskSmart=properties.getProperty("indexes.task.size");
+            queueName=properties.getProperty("indexes.queue.name");
 
         }
         catch (IOException e) {
@@ -62,6 +65,9 @@ public class LuceneConfig  {
     }
     public static String getIDName(){
         return  idName;
+    }
+    public static String getQueueName(){
+        return  queueName;
     }
     public static Boolean getIKUserSmart(){
         if(ikUserSmart.equals("true")){

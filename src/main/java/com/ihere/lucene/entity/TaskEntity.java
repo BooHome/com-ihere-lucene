@@ -3,12 +3,16 @@ package com.ihere.lucene.entity;
 import com.ihere.lucene.enums.IndexOperationTypeEnum;
 import com.ihere.lucene.enums.OperationTypeEnum;
 
+import java.io.Serializable;
+
 /**
  * @author fengshibo
  * @create 2018-07-19 14:11
  * @desc ${DESCRIPTION}
  **/
-public class TaskEntity {
+public class TaskEntity  implements Serializable {
+
+    private static final long serialVersionUID = -8982592147822752551L;
     /**
      * 数据
      * 当新增时用 IndexOperationTypeEnum.ADD

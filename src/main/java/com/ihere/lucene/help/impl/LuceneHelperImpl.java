@@ -13,7 +13,7 @@ import com.ihere.lucene.ik.MyIKAnalyzer;
 import com.ihere.lucene.task.Task;
 import com.ihere.lucene.util.DocumentUtil;
 import com.ihere.lucene.util.IndexWriterUtil;
-import com.ihere.lucene.util.JsonUtil;
+import com.ihere.lucene.util.JsonValidate;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.synonym.SynonymFilterFactory;
@@ -28,6 +28,8 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
@@ -45,6 +47,9 @@ import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.wltea.analyzer.core.IKSegmenter;
 import org.wltea.analyzer.core.Lexeme;
@@ -67,10 +72,21 @@ import java.util.Map;
 public class LuceneHelperImpl implements LuceneHelper {
 
 
-    private static final Logger logger = LoggerFactory.getLogger(Task.class);
+    private static final Logger logger = LoggerFactory.getLogger(LuceneHelperImpl.class);
+
+    @Autowired
+    @Qualifier("redisTemplate")
+    private RedisTemplate redisTemplate;
 
     private IndexReader reader = null;
-
+    public Boolean addTaskLinkList(TaskEntity taskEntity) {
+        if (JsonValidate.isJSONValid(taskEntity.getJson())) {
+            redisTemplate.opsForList().leftPush(LuceneConfig.getQueueName(),taskEntity);
+            return true;
+        } else {
+            return false;
+        }
+    }
     /**
      * @param field     查询类型
      * @param keywords  关键字
@@ -79,7 +95,7 @@ public class LuceneHelperImpl implements LuceneHelper {
      * @return
      * @throws Exception
      */
-    public TopDocs findIndexTopDocsPage(String field, String keywords, int pageIndex, int pageSize) throws Exception {
+    private TopDocs findIndexTopDocsPage(String field, String keywords, int pageIndex, int pageSize) throws Exception {
         Query query = getQuery(field, keywords);
         //不同的规则构造不同的子类...
         TopDocs topDocs = this.searchPageByAfter(query, pageIndex, pageSize);
@@ -93,7 +109,7 @@ public class LuceneHelperImpl implements LuceneHelper {
      * @return
      * @throws Exception
      */
-    public TopDocs findIndexTopDocsByNum(String field, String keywords, int num) throws Exception {
+    private TopDocs findIndexTopDocsByNum(String field, String keywords, int num) throws Exception {
         Query query = getQuery(field, keywords);
         //不同的规则构造不同的子类...
         TopDocs topDocs = this.searchByNum(query, num);
@@ -112,7 +128,7 @@ public class LuceneHelperImpl implements LuceneHelper {
         return indexResultEntity;
     }
 
-    @Override
+    
     public IndexResultEntity findIndexResultByNum(String field, String keywords, int num) {
         IndexResultEntity indexResultEntity = new IndexResultEntity();
         try {
@@ -125,7 +141,7 @@ public class LuceneHelperImpl implements LuceneHelper {
         return indexResultEntity;
     }
 
-    @Override
+    
     public IndexResultEntity findIndexResultByNum(String[] fields, String keywords, int num) {
         IndexResultEntity indexResultEntity = new IndexResultEntity();
         try {
@@ -150,7 +166,35 @@ public class LuceneHelperImpl implements LuceneHelper {
         return indexResultEntity;
     }
 
-    @Override
+    
+    public IndexResultEntity findIndexResultPage(Map<String, String> map,Boolean isMust, int pageIndex, int pageSize) {
+        IndexResultEntity indexResultEntity = new IndexResultEntity();
+        try {
+            TopDocs topDocs = findIndexTopDocsPage(map, isMust,pageIndex, pageSize);
+            indexResultEntity = topDocsToEntity(topDocs);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+        return indexResultEntity;
+    }
+
+    private TopDocs findIndexTopDocsPage(Map<String,String> map,Boolean isMust, int pageIndex, int pageSize) {
+        Query query = null;
+        try {
+            query = getQuery(map,isMust);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return null;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+        TopDocs topDocs = this.searchPageByAfter(query, pageIndex, pageSize);
+        return topDocs;
+    }
+
+    
     public IndexResultEntity findIndexHighLighterResultPage(String field, String keywords, int fragmentSize, int pageIndex, int pageSize) {
         IndexResultEntity indexResultEntity = new IndexResultEntity();
         try {
@@ -164,7 +208,7 @@ public class LuceneHelperImpl implements LuceneHelper {
         return indexResultEntity;
     }
 
-    @Override
+    
     public IndexResultEntity findIndexHighLighterResultByNum(String field, String keywords, int fragmentSize, int num) {
         IndexResultEntity indexResultEntity = new IndexResultEntity();
         try {
@@ -178,7 +222,7 @@ public class LuceneHelperImpl implements LuceneHelper {
         return indexResultEntity;
     }
 
-    @Override
+    
     public IndexResultEntity findIndexHighLighterResultByNum(String[] fields, String keywords, int fragmentSize, int num) {
         IndexResultEntity indexResultEntity = new IndexResultEntity();
         try {
@@ -192,7 +236,7 @@ public class LuceneHelperImpl implements LuceneHelper {
         return indexResultEntity;
     }
 
-    @Override
+    
     public IndexResultEntity findIndexHighLighterResultPage(String[] fields, String keywords, int fragmentSize, int pageIndex, int pageSize) {
         IndexResultEntity indexResultEntity = new IndexResultEntity();
         try {
@@ -206,14 +250,33 @@ public class LuceneHelperImpl implements LuceneHelper {
         return indexResultEntity;
     }
 
+    
+    public IndexResultEntity findIndexHighLighterResultPage(Map<String, String> map, Boolean isMust, int fragmentSize, int pageIndex, int pageSize) {
+        IndexResultEntity indexResultEntity = new IndexResultEntity();
+        try {
+            TopDocs topDocs = findIndexTopDocsPage(map, isMust,pageIndex, pageSize);
+            Query query = getQuery(map, isMust);
+            indexResultEntity = docsToHighlighter(query, topDocs, fragmentSize);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return null;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return indexResultEntity;
+    }
 
-    public TopDocs findIndexTopDocsPage(String fields[], String keywords, int pageIndex, int pageSize) throws Exception {
+
+    private TopDocs findIndexTopDocsPage(String fields[], String keywords, int pageIndex, int pageSize) throws Exception {
         Query query = getQuery(fields, keywords);
         TopDocs topDocs = this.searchPageByAfter(query, pageIndex, pageSize);
         return topDocs;
     }
 
-    public TopDocs findIndexTopDocsByNum(String[] fields, String keywords, int num) throws Exception {
+
+
+    private TopDocs findIndexTopDocsByNum(String[] fields, String keywords, int num) throws Exception {
         Query query = getQuery(fields, keywords);
         TopDocs topDocs = this.searchByNum(query, num);
         return topDocs;
@@ -224,7 +287,7 @@ public class LuceneHelperImpl implements LuceneHelper {
      *
      * @param json
      */
-    public Integer addIndex(String json) {
+    private Integer addIndex(String json) {
         try {
             this.setUpContentNoHave(DocumentUtil.jsonToDoc(json));
             return 1;
@@ -239,7 +302,7 @@ public class LuceneHelperImpl implements LuceneHelper {
      *
      * @param json
      */
-    public Integer addIndexs(String json) {
+    private Integer addIndexs(String json) {
         try {
             List<Document> documents = DocumentUtil.jsonToDocs(json);
             this.setUpContentNoHaves(documents);
@@ -256,7 +319,7 @@ public class LuceneHelperImpl implements LuceneHelper {
      * @param json
      * @return
      */
-    public boolean updateIndex(String json) {
+    private boolean updateIndex(String json) {
         try {
             this.updateContentNoHave(DocumentUtil.jsonToDoc(json));
         } catch (Exception e) {
@@ -266,7 +329,7 @@ public class LuceneHelperImpl implements LuceneHelper {
         return true;
     }
 
-    public boolean updateIndexs(String json) {
+    private boolean updateIndexs(String json) {
         try {
             this.updateContentNoHave(DocumentUtil.jsonToDocs(json));
         } catch (Exception e) {
@@ -282,7 +345,7 @@ public class LuceneHelperImpl implements LuceneHelper {
      * @param id
      * @return
      */
-    public boolean delIndex(String id) {
+    private boolean delIndex(String id) {
         try {
             this.deleteBeforeMerge(id);
         } catch (Exception e) {
@@ -292,8 +355,7 @@ public class LuceneHelperImpl implements LuceneHelper {
         return true;
     }
 
-    @Override
-    public boolean delIndexs(List<String> ids) {
+    private boolean delIndexs(List<String> ids) {
         try {
             this.deleteBeforeMerge(ids);
         } catch (Exception e) {
@@ -310,7 +372,7 @@ public class LuceneHelperImpl implements LuceneHelper {
      * @param topDocs
      * @return
      */
-    public IndexResultEntity topDocsToEntity(TopDocs topDocs) {
+    private IndexResultEntity topDocsToEntity(TopDocs topDocs) {
         IndexResultEntity indexResultEntity = new IndexResultEntity();
         ScoreDoc[] scoreDocs = topDocs.scoreDocs;
         List<ResultEntity> list = new ArrayList<>();
@@ -332,7 +394,7 @@ public class LuceneHelperImpl implements LuceneHelper {
      * @param scoreDoc
      * @return
      */
-    public Map<String, String> docToMap(ScoreDoc scoreDoc) {
+    private Map<String, String> docToMap(ScoreDoc scoreDoc) {
         Map<String, String> map = new HashMap<>();
         Document doc = this.findDoc(scoreDoc);
         List<IndexableField> fields = doc.getFields();
@@ -349,7 +411,7 @@ public class LuceneHelperImpl implements LuceneHelper {
      * @param scoreDocs
      * @return
      */
-    public List<Map<String, String>> docToListMap(ScoreDoc[] scoreDocs) {
+    private List<Map<String, String>> docToListMap(ScoreDoc[] scoreDocs) {
         List<Map<String, String>> list = new ArrayList<>();
         for (ScoreDoc scoreDoc : scoreDocs) {
             list.add(docToMap(scoreDoc));
@@ -365,7 +427,7 @@ public class LuceneHelperImpl implements LuceneHelper {
      * @param fragmentSize
      * @return
      */
-    public IndexResultEntity docsToHighlighter(Query query, TopDocs topDocs, int fragmentSize) {
+    private IndexResultEntity docsToHighlighter(Query query, TopDocs topDocs, int fragmentSize) {
         IndexResultEntity indexResultEntity = new IndexResultEntity();
         List<ResultEntity> resultEntities = new ArrayList<>();
         ScoreDoc scoreDoc[] = topDocs.scoreDocs;
@@ -424,7 +486,7 @@ public class LuceneHelperImpl implements LuceneHelper {
      * @throws ParseException
      * @throws IOException
      */
-    public Query getQuery(String field, String keywords) throws ParseException, IOException {
+    private Query getQuery(String field, String keywords) throws ParseException, IOException {
         /**同义词处理*/
         String result = this.displayTokens(this.convertSynonym(this.analyzeChinese(keywords, LuceneConfig.getIKUserSmart())));
         Analyzer analyzer = new MyIKAnalyzer(); // IK分词器
@@ -442,7 +504,7 @@ public class LuceneHelperImpl implements LuceneHelper {
      * @throws ParseException
      * @throws IOException
      */
-    public Query getQuery(String fields[], String keywords) throws ParseException, IOException {
+    private Query getQuery(String fields[], String keywords) throws ParseException, IOException {
         /**同义词处理*/
         String result = this.displayTokens(this.convertSynonym(this.analyzeChinese(keywords, true)));
         //需要根据哪几个字段进行检索...
@@ -454,6 +516,46 @@ public class LuceneHelperImpl implements LuceneHelper {
         return query;
     }
 
+
+    /**
+     * 列和关键字 对应 生成query条件
+     *
+     * @param map
+     * @return
+     * @throws ParseException
+     * @throws IOException
+     */
+    private Query getQuery(Map<String, String> map,Boolean isMust) throws ParseException, IOException {
+        //核心句
+        BooleanQuery.Builder booleanQuery=new BooleanQuery.Builder();
+        if (!map.isEmpty()) {
+            // Occur.MUST表示新添加的条件是必须满足的
+            for (Map.Entry<String, String> entry : map.entrySet()) {
+                /**同义词处理*/
+                String result = this.displayTokens(this.convertSynonym(this.analyzeChinese(entry.getValue(), true)));
+                //需要根据哪几个字段进行检索...
+                //查询分析程序（查询解析）
+                QueryParser queryParser = new QueryParser(entry.getKey(), IKInitialize.getAnalyzer());
+                //不同的规则构造不同的子类...
+                //title:keywords content:keywords
+                Query query = queryParser.parse(result);
+                //把多条件查询的query都加到BooleanQuery中去
+                /**
+                 * FILTER:是否统计的意思，一般不常用；
+                 * MUST:相当于 and，同时满足条件；
+                 * MUST_NOT:相当于not；
+                 * SHOULD:相当于or，两者满足一个条件即可查出
+                 */
+                if(isMust){
+                    booleanQuery.add(query, BooleanClause.Occur.MUST);
+                }else{
+                    booleanQuery.add(query, BooleanClause.Occur.SHOULD);
+                }
+
+            }
+        }
+        return booleanQuery.build();
+    }
 
     /**
      * 获取IndexWriter实例
@@ -475,7 +577,7 @@ public class LuceneHelperImpl implements LuceneHelper {
      * @param doc
      * @throws Exception
      */
-    public void setUpContentNoHave(Document doc) throws Exception {
+    private void setUpContentNoHave(Document doc) throws Exception {
         IndexWriter writer = this.getWriter();// 得到索引
         writer.addDocument(doc); // 添加文档
         if (writer != null) {
@@ -491,7 +593,7 @@ public class LuceneHelperImpl implements LuceneHelper {
      * @param docs
      * @throws Exception
      */
-    public void setUpContentNoHaves(List<Document> docs) throws Exception {
+    private void setUpContentNoHaves(List<Document> docs) throws Exception {
         IndexWriter writer = this.getWriter();// 得到索引
         for (Document doc : docs) {
             writer.addDocument(doc); // 添加文档
@@ -509,7 +611,7 @@ public class LuceneHelperImpl implements LuceneHelper {
      * @param id
      * @throws Exception
      */
-    public void deleteBeforeMerge(String id) throws Exception {
+    private void deleteBeforeMerge(String id) throws Exception {
         IndexWriter writer = this.getWriter();
         writer.deleteDocuments(new Term(LuceneConfig.getIDName(), id));// term：根据id
         writer.commit();
@@ -522,7 +624,7 @@ public class LuceneHelperImpl implements LuceneHelper {
      * @param ids
      * @throws Exception
      */
-    public void deleteBeforeMerge(List<String> ids) throws Exception {
+    private void deleteBeforeMerge(List<String> ids) throws Exception {
         IndexWriter writer = this.getWriter();
         Term[] terms = new Term[ids.size()];
         for (int i = 0; i < ids.size(); i++) {
@@ -539,7 +641,7 @@ public class LuceneHelperImpl implements LuceneHelper {
      * @param ids
      * @throws Exception
      */
-    public void deleteBeforeMergeBatch(List<String> ids) throws Exception {
+    private void deleteBeforeMergeBatch(List<String> ids) throws Exception {
         IndexWriter writer = this.getWriter();
         for (String string :
                 ids) {
@@ -555,7 +657,7 @@ public class LuceneHelperImpl implements LuceneHelper {
      * @param id
      * @throws Exception
      */
-    public void deleteAfterMerge(Long id) throws Exception {
+    private void deleteAfterMerge(Long id) throws Exception {
         IndexWriter writer = this.getWriter();
         writer.deleteDocuments(new Term(LuceneConfig.getIDName(), String.valueOf(id)));
         writer.forceMergeDeletes(); // 强制删除
@@ -569,7 +671,7 @@ public class LuceneHelperImpl implements LuceneHelper {
      * @param ids
      * @throws Exception
      */
-    public void deleteAfterMergeBatch(List<String> ids) throws Exception {
+    private void deleteAfterMergeBatch(List<String> ids) throws Exception {
         IndexWriter writer = this.getWriter();
         for (String string :
                 ids) {
@@ -587,7 +689,7 @@ public class LuceneHelperImpl implements LuceneHelper {
      * @param document
      * @throws Exception
      */
-    public void updateContentNoHave(Document document) throws Exception {
+    private void updateContentNoHave(Document document) throws Exception {
         IndexWriter writer = this.getWriter();
         writer.updateDocument(new Term(LuceneConfig.getIDName(), document.get(LuceneConfig.getIDName())), document);
         writer.commit();
@@ -601,7 +703,7 @@ public class LuceneHelperImpl implements LuceneHelper {
      * @param documents
      * @throws Exception
      */
-    public void updateContentNoHave(List<Document> documents) throws Exception {
+    private void updateContentNoHave(List<Document> documents) throws Exception {
         IndexWriter writer = this.getWriter();
         for (int i = 0; i < documents.size(); i++) {
             writer.updateDocument(new Term(LuceneConfig.getIDName(), documents.get(i).get(LuceneConfig.getIDName())), documents.get(i));
@@ -806,14 +908,8 @@ public class LuceneHelperImpl implements LuceneHelper {
         return sb.toString();
     }
 
-    @Override
-    public Boolean addTaskLinkList(TaskEntity taskEntity) {
-        if(JsonUtil.isJSONValid(taskEntity.getJson())){
-            return Task.taskQueue.add(taskEntity);
-        }else{
-            return false;
-        }
-    }
+    
+
 
     /**
      * 数据
@@ -875,17 +971,17 @@ public class LuceneHelperImpl implements LuceneHelper {
      * @return
      */
     public Boolean addIndexOperationTask(List<TaskEntity> taskEntities) {
-        Gson gson=new Gson();
+        Gson gson = new Gson();
         try {
             List<Map<String, String>> mapsAdd = new ArrayList<>();
             for (TaskEntity taskEntity : taskEntities) {
-                    if (taskEntity.getOperationTypeEnum().equals(OperationTypeEnum.ONE)) {
-                        Map<String, String> map = gson.fromJson(taskEntity.getJson(), Map.class);
-                        mapsAdd.add(map);
-                    } else if (taskEntity.getOperationTypeEnum().equals(OperationTypeEnum.MORE)) {
-                        List<Map<String, String>> maps = gson.fromJson(taskEntity.getJson(), List.class);
-                        mapsAdd.addAll(maps);
-                    }
+                if (taskEntity.getOperationTypeEnum().equals(OperationTypeEnum.ONE)) {
+                    Map<String, String> map = gson.fromJson(taskEntity.getJson(), Map.class);
+                    mapsAdd.add(map);
+                } else if (taskEntity.getOperationTypeEnum().equals(OperationTypeEnum.MORE)) {
+                    List<Map<String, String>> maps = gson.fromJson(taskEntity.getJson(), List.class);
+                    mapsAdd.addAll(maps);
+                }
             }
             if (mapsAdd.size() > 0) {
                 this.addIndexs(gson.toJson(mapsAdd));
